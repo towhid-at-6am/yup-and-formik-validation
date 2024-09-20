@@ -1,101 +1,248 @@
-import Image from "next/image";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { businessInfoSchema } from "@/schemas/businessInfoValidator.schema";
+import { useEffect, useState } from "react";
+
+const initialBusinessFormData = {
+	name: "",
+	email: "",
+	password: "",
+	confirmPassword: "",
+	businessType: "online",
+	website: "",
+	address: "",
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+	const [formData, setFormData] = useState(initialBusinessFormData);
+	const [touched, setTouched] = useState(false);
+	const [errors, setErrors] = useState({});
+	const [hasError, setHasError] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		await validateBusinessInfo();
+		if (!hasError) {
+			// Proceed with form submission or other actions
+			console.log("Form submitted successfully!");
+		}
+	};
+
+	const handleChange = (name, value) => {
+		if (!touched) {
+			setTouched(true);
+		}
+		setFormData({ ...formData, [name]: value });
+	};
+
+	const validateBusinessInfo = async () => {
+		try {
+			await businessInfoSchema.validate(formData, { abortEarly: false });
+			setErrors({});
+			setHasError(false);
+		} catch (err) {
+			console.log(err);
+			setHasError(true);
+			const errors = {}; // No need for TypeScript type annotations in JavaScript
+			err?.inner?.forEach((error) => {
+				errors[error.path] = error.message;
+			});
+			setErrors(errors); // Update state once after collecting all errors
+		}
+	};
+
+	useEffect(() => {
+		validateBusinessInfo();
+	}, [formData]);
+
+	console.log("errors", errors);
+	console.log(formData);
+
+	return (
+		<div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+			<main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+				<form onSubmit={handleSubmit} className="flex flex-col gap-3">
+					<Card className="w-96 max-w-96">
+						<CardHeader>
+							<CardTitle>Register Your Business</CardTitle>
+							<CardDescription>
+								Welcome to OpenTable
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<label className="text-sm">
+								<span className="cursor-pointer">
+									Business Name
+								</span>
+								<Input
+									type="text"
+									name="name"
+									required
+									value={formData.name}
+									onChange={(e) =>
+										handleChange("name", e.target.value)
+									}
+								/>
+								{touched && errors.name && (
+									<p className="text-red-500 text-sm">
+										{errors.name}
+									</p>
+								)}
+							</label>
+
+							<label className="text-sm">
+								<span className="cursor-pointer">
+									Business Email
+								</span>
+								<Input
+									type="email"
+									name="email"
+									required
+									value={formData.email}
+									onChange={(e) =>
+										handleChange("email", e.target.value)
+									}
+								/>
+								{touched && errors.email && (
+									<p className="text-red-500 text-sm">
+										{errors.email}
+									</p>
+								)}
+							</label>
+
+							<label className="text-sm">
+								<span className="cursor-pointer">Password</span>
+								<Input
+									type="password"
+									name="password"
+									required
+									value={formData.password}
+									onChange={(e) =>
+										handleChange("password", e.target.value)
+									}
+								/>
+								{touched && errors.password && (
+									<p className="text-red-500 text-sm">
+										{errors.password}
+									</p>
+								)}
+							</label>
+
+							<label className="text-sm">
+								<span className="cursor-pointer">
+									Confirm Password
+								</span>
+								<Input
+									type="password" // Fixed type
+									name="confirmPassword"
+									required
+									value={formData.confirmPassword}
+									onChange={(e) =>
+										handleChange(
+											"confirmPassword",
+											e.target.value
+										)
+									}
+								/>
+								{touched && errors.confirmPassword && (
+									<p className="text-red-500 text-sm">
+										{errors.confirmPassword}
+									</p>
+								)}
+							</label>
+
+							<div>
+								<span className="text-sm">Business Type</span>
+								<RadioGroup
+									value={formData.businessType}
+									className="flex items-center gap-5"
+									onValueChange={(value) =>
+										handleChange("businessType", value)
+									}
+								>
+									<div className="flex items-center space-x-2">
+										<RadioGroupItem
+											value="online"
+											id="online"
+										/>
+										<Label htmlFor="online">Online</Label>
+									</div>
+									<div className="flex items-center space-x-2">
+										<RadioGroupItem
+											value="offline"
+											id="offline"
+										/>
+										<Label htmlFor="offline">Offline</Label>
+									</div>
+								</RadioGroup>
+							</div>
+
+							{formData.businessType === "offline" && (
+								<label className="text-sm">
+									<span className="cursor-pointer">
+										Business Address
+									</span>
+									<Input
+										type="text"
+										name="address"
+										value={formData.address}
+										onChange={(e) =>
+											handleChange(
+												"address",
+												e.target.value
+											)
+										}
+									/>
+									{touched && errors.address && (
+										<p className="text-red-500 text-sm">
+											{errors.address}
+										</p>
+									)}
+								</label>
+							)}
+
+							{formData.businessType === "online" && (
+								<label className="text-sm">
+									<span className="cursor-pointer">
+										Business Website
+									</span>
+									<Input
+										type="text"
+										name="website"
+										value={formData.website}
+										onChange={(e) =>
+											handleChange(
+												"website",
+												e.target.value
+											)
+										}
+									/>
+									{touched && errors.website && (
+										<p className="text-red-500 text-sm">
+											{errors.website}
+										</p>
+									)}
+								</label>
+							)}
+						</CardContent>
+						<CardFooter className="flex justify-end">
+							<Button type="submit">Submit</Button>
+						</CardFooter>
+					</Card>
+				</form>
+			</main>
+		</div>
+	);
 }
