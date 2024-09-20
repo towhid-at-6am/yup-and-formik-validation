@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { businessInfoSchema } from "@/schemas/businessInfoValidator.schema";
-import { useEffect, useState } from "react";
+import { useFormik } from "formik";
 
 const initialBusinessFormData = {
 	name: "",
@@ -26,49 +26,26 @@ const initialBusinessFormData = {
 };
 
 export default function Home() {
-	const [formData, setFormData] = useState(initialBusinessFormData);
-	const [touched, setTouched] = useState(false);
-	const [errors, setErrors] = useState({});
-	const [hasError, setHasError] = useState(false);
-
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		await validateBusinessInfo();
-		if (!hasError) {
-			// Proceed with form submission or other actions
-			console.log("Form submitted successfully!");
-		}
-	};
-
-	const handleChange = (name, value) => {
-		if (!touched) {
-			setTouched(true);
-		}
-		setFormData({ ...formData, [name]: value });
-	};
-
-	const validateBusinessInfo = async () => {
-		try {
-			await businessInfoSchema.validate(formData, { abortEarly: false });
-			setErrors({});
-			setHasError(false);
-		} catch (err) {
-			console.log(err);
-			setHasError(true);
-			const errors = {}; // No need for TypeScript type annotations in JavaScript
-			err?.inner?.forEach((error) => {
-				errors[error.path] = error.message;
-			});
-			setErrors(errors); // Update state once after collecting all errors
-		}
-	};
-
-	useEffect(() => {
-		validateBusinessInfo();
-	}, [formData]);
+	const {
+		handleChange,
+		touched,
+		errors,
+		handleSubmit,
+		values,
+		setFieldValue,
+	} = useFormik({
+		initialValues: initialBusinessFormData,
+		onSubmit: () => {
+			console.log("hello there");
+		},
+		validationSchema: businessInfoSchema,
+		enableReinitialize: true,
+		validateOnBlur: true,
+		validateOnChange: true,
+		validateOnMount: false,
+	});
 
 	console.log("errors", errors);
-	console.log(formData);
 
 	return (
 		<div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -90,12 +67,10 @@ export default function Home() {
 									type="text"
 									name="name"
 									required
-									value={formData.name}
-									onChange={(e) =>
-										handleChange("name", e.target.value)
-									}
+									value={values.name}
+									onChange={handleChange}
 								/>
-								{touched && errors.name && (
+								{touched?.name && errors?.name && (
 									<p className="text-red-500 text-sm">
 										{errors.name}
 									</p>
@@ -110,12 +85,10 @@ export default function Home() {
 									type="email"
 									name="email"
 									required
-									value={formData.email}
-									onChange={(e) =>
-										handleChange("email", e.target.value)
-									}
+									value={values.email}
+									onChange={handleChange}
 								/>
-								{touched && errors.email && (
+								{touched?.email && errors?.email && (
 									<p className="text-red-500 text-sm">
 										{errors.email}
 									</p>
@@ -128,12 +101,10 @@ export default function Home() {
 									type="password"
 									name="password"
 									required
-									value={formData.password}
-									onChange={(e) =>
-										handleChange("password", e.target.value)
-									}
+									value={values.password}
+									onChange={handleChange}
 								/>
-								{touched && errors.password && (
+								{touched?.password && errors?.password && (
 									<p className="text-red-500 text-sm">
 										{errors.password}
 									</p>
@@ -148,28 +119,25 @@ export default function Home() {
 									type="password" // Fixed type
 									name="confirmPassword"
 									required
-									value={formData.confirmPassword}
-									onChange={(e) =>
-										handleChange(
-											"confirmPassword",
-											e.target.value
-										)
-									}
+									value={values.confirmPassword}
+									onChange={handleChange}
 								/>
-								{touched && errors.confirmPassword && (
-									<p className="text-red-500 text-sm">
-										{errors.confirmPassword}
-									</p>
-								)}
+								{touched?.confirmPassword &&
+									errors?.confirmPassword && (
+										<p className="text-red-500 text-sm">
+											{errors.confirmPassword}
+										</p>
+									)}
 							</label>
 
 							<div>
 								<span className="text-sm">Business Type</span>
 								<RadioGroup
-									value={formData.businessType}
+									name="businessType"
+									value={values.businessType}
 									className="flex items-center gap-5"
 									onValueChange={(value) =>
-										handleChange("businessType", value)
+										setFieldValue("businessType", value)
 									}
 								>
 									<div className="flex items-center space-x-2">
@@ -189,7 +157,7 @@ export default function Home() {
 								</RadioGroup>
 							</div>
 
-							{formData.businessType === "offline" && (
+							{values.businessType === "offline" && (
 								<label className="text-sm">
 									<span className="cursor-pointer">
 										Business Address
@@ -197,15 +165,10 @@ export default function Home() {
 									<Input
 										type="text"
 										name="address"
-										value={formData.address}
-										onChange={(e) =>
-											handleChange(
-												"address",
-												e.target.value
-											)
-										}
+										value={values.address}
+										onChange={handleChange}
 									/>
-									{touched && errors.address && (
+									{touched?.address && errors?.address && (
 										<p className="text-red-500 text-sm">
 											{errors.address}
 										</p>
@@ -213,7 +176,7 @@ export default function Home() {
 								</label>
 							)}
 
-							{formData.businessType === "online" && (
+							{values.businessType === "online" && (
 								<label className="text-sm">
 									<span className="cursor-pointer">
 										Business Website
@@ -221,15 +184,10 @@ export default function Home() {
 									<Input
 										type="text"
 										name="website"
-										value={formData.website}
-										onChange={(e) =>
-											handleChange(
-												"website",
-												e.target.value
-											)
-										}
+										value={values.website}
+										onChange={handleChange}
 									/>
-									{touched && errors.website && (
+									{touched?.website && errors?.website && (
 										<p className="text-red-500 text-sm">
 											{errors.website}
 										</p>
